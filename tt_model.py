@@ -26,7 +26,7 @@ class TTLayer(nn.Module):
 
         self.cores = nn.ParameterList([nn.Parameter(torch.randn(in_factors[0], 1, ranks[0], out_factors[0], ) * 0.8)])
         for i in range(1, len(in_factors) - 1):
-            self.cores.append(nn.Parameter(torch.randn(in_factors[0], ranks[i-1], ranks[i], out_factors[0],) * 0.1))
+            self.cores.append(nn.Parameter(torch.randn(in_factors[i], ranks[i-1], ranks[i], out_factors[i],) * 0.1))
         self.cores.append(nn.Parameter(torch.randn(in_factors[-1], ranks[-1], 1, out_factors[-1], ) * 0.8))
 #         print(self.cores)
     def forward(self, x):
