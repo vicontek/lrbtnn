@@ -75,13 +75,13 @@ def vectorize_params(model, lambdas):
     
     
 def unvectorize_params(theta, cfg):
-    shapes = [array([4, 1, 8, 2]),
-              array([4, 8, 8, 2]),
-              array([4, 8, 8, 2]),
-              array([4, 8, 8, 2]),
-              array([4, 8, 1, 2]),
-              array([4,  1, 16,  5]),
-              array([8, 16,  1,  2])]
+    shapes = [np.array([4, 1, 8, 2]),
+              np.array([4, 8, 8, 2]),
+              np.array([4, 8, 8, 2]),
+              np.array([4, 8, 8, 2]),
+              np.array([4, 8, 1, 2]),
+              np.array([4,  1, 16,  5]),
+              np.array([8, 16,  1,  2])]
     curr = 0
     layer1_cores = []
     layer2_cores = []
