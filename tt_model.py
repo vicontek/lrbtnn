@@ -1,5 +1,6 @@
 import logging
 from functools import partial
+from typing import *
 
 from collections import OrderedDict
 from typing import Sequence, Any, Iterable, Optional, List
@@ -13,6 +14,8 @@ from torchvision.datasets.mnist import MNIST
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, random_split
 from torch.optim.lr_scheduler import StepLR
+
+from find_mode import find_max_mode
 
 
 class TTLayer(nn.Module):
@@ -67,11 +70,40 @@ class TTModel(nn.Module):
 #         return self.net[1].parameters() + list(self.net[3].parameters())
 
 
+def get_lambdas_vec(lambdas) -> torch.Tensor:
+    return torch.cat(tuple([rank for layer in lambdas for rank in layer]))
+
 
 def vectorize_params(model, lambdas):
     params_vec = torch.cat(tuple(c.view(-1) for c in model.net.tt0.cores) + tuple(c.view(-1) for c in model.net.tt1.cores))
-    lambdas_vec = torch.cat(tuple([rank for layer in lambdas for rank in layer]))
-    return torch.cat((params_vec, lambdas_vec))
+    return torch.cat((params_vec, get_lambdas_vec(lambdas)))
+
+
+def calc_ranks_from_particles(
+    cfg, particles: Sequence[torch.Tensor], kernel_sigma_squared: float,
+    how: str = "mode", threshold: float = 1e-2
+) -> Tuple[Tuple[int, int, int, int], Tuple[int]]:
+    lambdas = tuple(
+        unvectorize_params(particle, cfg)[1]
+        for particle in particles
+    )
+    lambdas_vecs: np.ndarray = np.column_stack((
+        get_lambdas_vec(lambda_).detach().cpu().numpy()
+        for lambda_ in lambdas
+    )).T
+    lambda_mode = find_max_mode(
+        lambdas_vecs, kernel_sigma_squared, sample_size=10000, verbose=True
+    )
+    cur = 0
+    ranks = []
+    assert lambda_mode.shape == (sum(cfg.l1_ranks) + sum(cfg.l2_ranks), )
+    for layer_max_ranks in (cfg.l1_ranks, cfg.l2_ranks):
+        this_layer_ranks = []
+        for max_rank in layer_max_ranks:
+            this_layer_ranks.append(np.sum(lambda_mode[cur:cur+max_rank] > threshold))
+            cur += max_rank
+        ranks.append(this_layer_ranks)
+    return ranks
     
     
 def unvectorize_params(theta, cfg):
