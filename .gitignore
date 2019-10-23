@@ -1,0 +1,6 @@
+# ignore temporary stuff
+.ipynb_checkpoints
+__pycache__
+
+# ignore datasets
+mnist
