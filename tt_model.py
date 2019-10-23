@@ -56,7 +56,8 @@ class TTModel(nn.Module):
             ('relu', nn.ReLU()),
 #             nn.Linear(np.prod(hidd_factors), NUM_LABELS),
             ('tt1', TTLayer(cfg.hidd_in_factors, cfg.out_factors, cfg.l2_ranks, cfg.ein_string2)),
-            ('softmax', nn.Softmax(dim=1))]))
+            # ('softmax', nn.Softmax(dim=1))
+            ]),)
 
         # self.
 
