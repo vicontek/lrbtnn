@@ -26,7 +26,7 @@ class TTLayer(nn.Module):
 
         self.cores = nn.ParameterList([nn.Parameter(torch.randn(in_factors[0], 1, ranks[0], out_factors[0], ) * 0.8)])
         for i in range(1, len(in_factors) - 1):
-            self.cores.append(nn.Parameter(torch.randn(in_factors[i], ranks[i-1], ranks[i], out_factors[i],) * 0.1))
+            self.cores.append(nn.Parameter(torch.randn(in_factors[0], ranks[i-1], ranks[i], out_factors[0],) * 0.1))
         self.cores.append(nn.Parameter(torch.randn(in_factors[-1], ranks[-1], 1, out_factors[-1], ) * 0.8))
 #         print(self.cores)
     def forward(self, x):
@@ -65,3 +65,44 @@ class TTModel(nn.Module):
         return self.net(x)
 #     def parameters(self,):
 #         return self.net[1].parameters() + list(self.net[3].parameters())
+
+
+
+def vectorize_params(model, lambdas):
+    params_vec = torch.cat(tuple(c.view(-1) for c in model.net.tt0.cores) + tuple(c.view(-1) for c in model.net.tt1.cores))
+    lambdas_vec = torch.cat(tuple([rank for layer in lambdas for rank in layer]))
+    return torch.cat((params_vec, lambdas_vec))
+    
+    
+def unvectorize_params(theta, cfg):
+    shapes = [array([4, 1, 8, 2]),
+              array([4, 8, 8, 2]),
+              array([4, 8, 8, 2]),
+              array([4, 8, 8, 2]),
+              array([4, 8, 1, 2]),
+              array([4,  1, 16,  5]),
+              array([8, 16,  1,  2])]
+    curr = 0
+    layer1_cores = []
+    layer2_cores = []
+    for i in range(len(shapes) - 2):
+        layer1_cores.append(theta[curr: curr + np.prod(shapes[i])].view(*shapes[i]))
+        curr += np.prod(shapes[i])
+        
+    for i in range(len(shapes) - 2, len(shapes)):
+        layer2_cores.append(theta[curr: curr + np.prod(shapes[i])].view(*shapes[i]))
+        curr += np.prod(shapes[i])
+        
+    state_dict = OrderedDict([])
+    state_dict.update([('net.tt0.cores.' + str(i), w) for i, w in enumerate(layer1_cores)])
+    state_dict.update([('net.tt1.cores.' + str(i), w) for i, w in enumerate(layer2_cores)])
+    model = TTModel(cfg)
+    model.load_state_dict(state_dict)
+    
+    lambdas = theta[curr:]
+    lambdas = []
+    for i, ranks in zip(range(2), [cfg.l1_ranks, cfg.l2_ranks]):
+        lambdas.append([theta[curr + sum(ranks[0:i]): curr + sum(ranks[0:i+1])]
+                                             for i in range(len(ranks))])
+        curr += sum(ranks)
+    return model, lambdas
