@@ -1,0 +1,11 @@
+config = {
+    'in_factors': (4, 4, 2, 2, 2),
+    'l1_ranks': (1, 1, 1, 1),
+    'hidd_out_factors': (2, 2, 2, 2, 2),
+    'ein_string1': "nabcde,aoiv,bijw,cjkx,dkly,elpz",
+    
+    'hidd_in_factors': (1, 32),
+    'l2_ranks': (1,),
+    'out_factors': (1, 2),
+    'ein_string2': 'nab,aoix,bipy',
+}
