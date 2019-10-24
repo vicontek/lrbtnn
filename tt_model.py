@@ -108,9 +108,9 @@ def calc_ranks_from_particles(
     
 def unvectorize_params(theta, cfg):
     shapes = [np.array([4, 1, 8, 2]),
-              np.array([4, 8, 8, 2]),
-              np.array([4, 8, 8, 2]),
-              np.array([4, 8, 8, 2]),
+              np.array([4, 8, 32, 2]),
+              np.array([4, 32, 32, 2]),
+              np.array([4, 32, 8, 2]),
               np.array([4, 8, 1, 2]),
               np.array([4,  1, 16,  5]),
               np.array([8, 16,  1,  2])]
