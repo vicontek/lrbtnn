@@ -10,11 +10,6 @@ To install all required packages, run the following command:
 pip install -r requirements.txt
 ```
 
-## How to use
-
-The **Generative Latent Flow** (GLF) is an algorithm for generative modeling of the data distribution. 
-One could use it to generate images. 
-
 ### Experiments
 
 We perfromed a set of experiments aimed to reproduce automatic low rank selection and MAP-training. 
